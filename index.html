@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apple Inc. (AAPL) Equity Security Analysis & DCF Valuation</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- Top Sticky Ticker Banner -->
+  <header class="ticker-banner">
+    <div class="ticker-left">
+      <div class="apple-logo-badge">🍎</div>
+      <div class="ticker-name">
+        <h1>Apple Inc. <span class="ticker-symbol">AAPL</span></h1>
+        <div class="ticker-meta">NASDAQ • Technology Hardware, Storage & Peripherals • Cupertino, CA</div>
+      </div>
+    </div>
+
+    <div class="ticker-right">
+      <div class="price-display">
+        <div class="current-price">$230.00</div>
+        <div class="price-sub">Market Cap: $3.48T | Diluted Shares: 15.12B</div>
+      </div>
+      <div class="banner-actions">
+        <button id="btnReset" class="btn-secondary" title="Reset all model assumptions to Base Case">↺ Reset</button>
+        <button id="btnExportCsv" class="btn-primary" title="Export complete DCF model to CSV">📥 Export CSV</button>
+        <button id="btnPrintReport" class="btn-secondary" title="Print or save as PDF">🖨️ Print</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- Top Summary KPI Grid -->
+    <section class="grid-top-summary">
+      <div class="summary-card">
+        <div class="card-title">Recommendation</div>
+        <div class="card-val-row">
+          <div id="recBadge" class="recommendation-pill pill-hold">HOLD / NEUTRAL</div>
+        </div>
+      </div>
+
+      <div class="summary-card">
+        <div class="card-title">12-Month Target Price (Blended)</div>
+        <div class="card-val-row">
+          <div id="cardTargetPrice" class="card-big-value">$215.00</div>
+          <div id="cardUpsidePct" class="metric-tag tag-bear">-6.5%</div>
+        </div>
+      </div>
+
+      <div class="summary-card">
+        <div class="card-title">Gordon Growth DCF</div>
+        <div class="card-val-row">
+          <div id="cardGordonPrice" class="card-big-value">$158.34</div>
+          <div class="metric-tag tag-neutral">g = 3.0%</div>
+        </div>
+      </div>
+
+      <div class="summary-card">
+        <div class="card-title">Exit Multiple DCF</div>
+        <div class="card-val-row">
+          <div id="cardExitPrice" class="card-big-value">$203.79</div>
+          <div class="metric-tag tag-bull">21.0x EBITDA</div>
+        </div>
+      </div>
+
+      <div class="summary-card">
+        <div class="card-title">Discount Rate (WACC) / Ke</div>
+        <div class="card-val-row">
+          <div id="cardActiveWacc" class="card-big-value">8.25%</div>
+          <div id="cardCapmKe" class="metric-tag tag-neutral">Ke: 9.24%</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Workspace Layout -->
+    <div class="main-split">
+
+      <!-- Left Sidebar: Interactive Valuation Parameters -->
+      <aside class="panel-sidebar">
+        <div class="panel-header">
+          <span>Model Parameters</span>
+          <span style="font-size: 11px; color: var(--accent-cyan); font-weight: normal;">Live Reactive Engine</span>
+        </div>
+
+        <div style="font-size: 12px; color: var(--text-dim); margin-bottom: 8px; font-weight: 600;">SCENARIO SELECTOR</div>
+        <div class="scenario-selector">
+          <button class="scenario-btn active" data-scenario="base">Base</button>
+          <button class="scenario-btn" data-scenario="bull">Bull</button>
+          <button class="scenario-btn" data-scenario="bear">Bear</button>
+        </div>
+
+        <!-- WACC & Capital Cost Controls -->
+        <div class="control-group">
+          <div class="control-label-row">
+            <span class="control-label">Discount Rate (WACC)</span>
+            <span id="valWacc" class="control-val">8.25%</span>
+          </div>
+          <input type="range" id="sliderWacc" class="slider-custom" min="0.065" max="0.110" step="0.0025" value="0.0825">
+        </div>
+
+        <div class="control-group">
+          <div class="control-label-row">
+            <span class="control-label">Risk-Free Rate (Rf)</span>
+            <span id="valRf" class="control-val">4.25%</span>
+          </div>
+          <input type="range" id="sliderRf" class="slider-custom" min="0.030" max="0.060" step="0.0025" value="0.0425">
+        </div>
+
+        <div class="control-group">
+          <div class="control-label-row">
+            <span class="control-label">Beta (&beta;)</span>
+            <span id="valBeta" class="control-val">1.05x</span>
+          </div>
+          <input type="range" id="sliderBeta" class="slider-custom" min="0.80" max="1.40" step="0.05" value="1.05">
+        </div>
+
+        <div class="control-group">
+          <div class="control-label-row">
+            <span class="control-label">Equity Risk Premium (ERP)</span>
+            <span id="valErp" class="control-val">4.75%</span>
+          </div>
+          <input type="range" id="sliderErp" class="slider-custom" min="0.035" max="0.065" step="0.0025" value="0.0475">
+        </div>
+
+        <!-- Terminal Assumptions -->
+        <div class="control-group">
+          <div class="control-label-row">
+            <span class="control-label">Perpetual Growth (g)</span>
+            <span id="valTerminalG" class="control-val">3.00%</span>
+          </div>
+          <input type="range" id="sliderTerminalG" class="slider-custom" min="0.015" max="0.045" step="0.0025" value="0.030">
+        </div>
+
+        <div class="control-group">
+          <div class="control-label-row">
+            <span class="control-label">Exit EV/EBITDA Multiple</span>
+            <span id="valExitMultiple" class="control-val">21.0x</span>
+          </div>
+          <input type="range" id="sliderExitMultiple" class="slider-custom" min="15.0" max="27.0" step="0.5" value="21.0">
+        </div>
+
+        <div class="control-group">
+          <div class="control-label-row">
+            <span class="control-label">Normalized Tax Rate</span>
+            <span id="valTax" class="control-val">16.0%</span>
+          </div>
+          <input type="range" id="sliderTax" class="slider-custom" min="0.12" max="0.25" step="0.005" value="0.16">
+        </div>
+
+        <hr style="border: none; border-top: var(--glass-border); margin: 20px 0;">
+
+        <!-- Revenue Growth Forecasts -->
+        <div style="font-size: 12px; color: var(--text-dim); margin-bottom: 12px; font-weight: 600;">5-YEAR REVENUE GROWTH</div>
+        <div class="control-group">
+          <div class="control-label-row"><span class="control-label">FY25E Growth</span><span id="valGrowth1" class="control-val">6.0%</span></div>
+          <input type="range" id="sliderGrowth1" class="slider-custom" min="0.00" max="0.15" step="0.005" value="0.060">
+        </div>
+        <div class="control-group">
+          <div class="control-label-row"><span class="control-label">FY26E Growth</span><span id="valGrowth2" class="control-val">6.5%</span></div>
+          <input type="range" id="sliderGrowth2" class="slider-custom" min="0.00" max="0.15" step="0.005" value="0.065">
+        </div>
+        <div class="control-group">
+          <div class="control-label-row"><span class="control-label">FY27E Growth</span><span id="valGrowth3" class="control-val">5.5%</span></div>
+          <input type="range" id="sliderGrowth3" class="slider-custom" min="0.00" max="0.15" step="0.005" value="0.055">
+        </div>
+        <div class="control-group">
+          <div class="control-label-row"><span class="control-label">FY28E Growth</span><span id="valGrowth4" class="control-val">5.0%</span></div>
+          <input type="range" id="sliderGrowth4" class="slider-custom" min="0.00" max="0.15" step="0.005" value="0.050">
+        </div>
+        <div class="control-group">
+          <div class="control-label-row"><span class="control-label">FY29E Growth</span><span id="valGrowth5" class="control-val">4.5%</span></div>
+          <input type="range" id="sliderGrowth5" class="slider-custom" min="0.00" max="0.15" step="0.005" value="0.045">
+        </div>
+
+        <hr style="border: none; border-top: var(--glass-border); margin: 20px 0;">
+
+        <!-- Operating Margin Forecasts -->
+        <div style="font-size: 12px; color: var(--text-dim); margin-bottom: 12px; font-weight: 600;">5-YEAR OPERATING MARGINS (EBIT)</div>
+        <div class="control-group">
+          <div class="control-label-row"><span class="control-label">FY25E Margin</span><span id="valMargin1" class="control-val">31.8%</span></div>
+          <input type="range" id="sliderMargin1" class="slider-custom" min="0.25" max="0.38" step="0.002" value="0.318">
+        </div>
+        <div class="control-group">
+          <div class="control-label-row"><span class="control-label">FY26E Margin</span><span id="valMargin2" class="control-val">32.0%</span></div>
+          <input type="range" id="sliderMargin2" class="slider-custom" min="0.25" max="0.38" step="0.002" value="0.320">
+        </div>
+        <div class="control-group">
+          <div class="control-label-row"><span class="control-label">FY27E Margin</span><span id="valMargin3" class="control-val">32.2%</span></div>
+          <input type="range" id="sliderMargin3" class="slider-custom" min="0.25" max="0.38" step="0.002" value="0.322">
+        </div>
+        <div class="control-group">
+          <div class="control-label-row"><span class="control-label">FY28E Margin</span><span id="valMargin4" class="control-val">32.5%</span></div>
+          <input type="range" id="sliderMargin4" class="slider-custom" min="0.25" max="0.38" step="0.002" value="0.325">
+        </div>
+        <div class="control-group">
+          <div class="control-label-row"><span class="control-label">FY29E Margin</span><span id="valMargin5" class="control-val">32.5%</span></div>
+          <input type="range" id="sliderMargin5" class="slider-custom" min="0.25" max="0.38" step="0.002" value="0.325">
+        </div>
+      </aside>
+
+      <!-- Right Column: Analysis Sections -->
+      <main class="content-area">
+
+        <!-- Section 1: Executive Summary, Thesis & Risks -->
+        <div class="section-card">
+          <div class="section-header-row">
+            <div>
+              <div class="section-title">Executive Investment Summary</div>
+              <div class="section-subtitle">Institutional Thesis, Target Price Derivation & Core Downside Risks</div>
+            </div>
+            <div style="font-size: 13px; color: var(--text-dim);">Horizon: 12-18 Months</div>
+          </div>
+
+          <p style="font-size: 14px; color: var(--text-muted); line-height: 1.6; margin-bottom: 16px;">
+            At <strong>$230.00</strong>, Apple trades at <strong>34.2x trailing P/E</strong> and <strong>25.4x EV/EBITDA</strong>, commanding a <strong>52% premium</strong> over mega-cap peers despite a 3-year revenue CAGR of ~0%. While Apple’s wide-moat ecosystem (>2.2B active devices) and capital return machine ($108B annual FCF) remain elite, our blended target price of <strong>$215.00 (-6.5% downside)</strong> indicates that growth expectations are fully priced in with an unfavorable near-term risk-reward skew.
+          </p>
+
+          <div class="two-col-grid">
+            <div class="bullet-card">
+              <h4>🎯 3-Point Investment Thesis</h4>
+              <ul style="padding-left: 18px; font-size: 13px; color: var(--text-muted); display: flex; flex-direction: column; gap: 8px;">
+                <li><strong>High-Margin Services Mix:</strong> Services ($96B+ run-rate, 74.1% gross margin) expanding toward 30% of sales, structurally elevating corporate operating margins.</li>
+                <li><strong>Premier Shareholder Capital Return:</strong> ~$108B annual FCF deployed into aggressive buybacks (retiring ~3% of shares/year), driving mechanical EPS compounding.</li>
+                <li><strong>Edge AI / Silicon Replacement Cycle:</strong> Proprietary on-device Neural Engines (A18/M-series) creating a multi-year iPhone upgrade catalyst across an aging installed base.</li>
+              </ul>
+            </div>
+
+            <div class="bullet-card">
+              <h4>⚠️ Top 3 Investment Risks</h4>
+              <ul style="padding-left: 18px; font-size: 13px; color: var(--text-muted); display: flex; flex-direction: column; gap: 8px;">
+                <li><strong>DOJ Antitrust & Google Search TAC:</strong> Threat to Google's ~$20B annual TAC payment (100% margin), which represents ~15-18% of Apple's operating profit.</li>
+                <li><strong>Valuation Multiple Vulnerability:</strong> Lack of margin of safety at 34x P/E; any AI upgrade cycle delay international rollout triggers multiple contraction.</li>
+                <li><strong>Greater China & Geopolitical Friction:</strong> Mainland China market share pressure from domestic OEMs (Huawei, Xiaomi) and supply chain concentration risks.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: 3-Year Historical Financial Summary -->
+        <div class="section-card">
+          <div class="section-header-row">
+            <div>
+              <div class="section-title">3-Year Historical Financial Summary (FY2022 – FY2024)</div>
+              <div class="section-subtitle">Form 10-K Consolidated Statements of Operations, Balance Sheet & Cash Flows</div>
+            </div>
+            <div style="font-size: 12px; color: var(--accent-cyan); font-weight: 600;">$ Millions</div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="financial-table">
+              <thead>
+                <tr>
+                  <th>Financial Metric</th>
+                  <th class="text-right">FY2022 (Ended 09/24/22)</th>
+                  <th class="text-right">FY2023 (Ended 09/30/23)</th>
+                  <th class="text-right">FY2024 (Ended 09/28/24)</th>
+                  <th class="text-right">3-Yr Trend / CAGR</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Total Net Sales (Revenue)</strong></td>
+                  <td class="text-right">$394,328</td>
+                  <td class="text-right">$383,285</td>
+                  <td class="text-right font-bold">$391,035</td>
+                  <td class="text-right font-bold" style="color: var(--accent-cyan);">-0.4% (Rebounding)</td>
+                </tr>
+                <tr>
+                  <td>— Gross Profit</td>
+                  <td class="text-right">$170,782 (43.3%)</td>
+                  <td class="text-right">$169,148 (44.1%)</td>
+                  <td class="text-right">$180,683 (46.2%)</td>
+                  <td class="text-right">+290 bps Margin Exp.</td>
+                </tr>
+                <tr>
+                  <td><strong>Operating Income (EBIT)</strong></td>
+                  <td class="text-right">$119,437</td>
+                  <td class="text-right">$114,301</td>
+                  <td class="text-right font-bold">$123,216</td>
+                  <td class="text-right font-bold">+1.6% (Record EBIT)</td>
+                </tr>
+                <tr class="tr-header">
+                  <td><strong>Operating Margin (%)</strong></td>
+                  <td class="text-right">30.29%</td>
+                  <td class="text-right">29.82%</td>
+                  <td class="text-right font-bold" style="color: #34d399;">31.51%</td>
+                  <td class="text-right">+122 bps</td>
+                </tr>
+                <tr>
+                  <td><strong>Net Income</strong></td>
+                  <td class="text-right">$99,803</td>
+                  <td class="text-right">$96,995</td>
+                  <td class="text-right font-bold">$93,736*</td>
+                  <td class="text-right">Adj. $103.9B (+4.1%)</td>
+                </tr>
+                <tr>
+                  <td>Cash Flow from Operations (CFO)</td>
+                  <td class="text-right">$122,151</td>
+                  <td class="text-right">$110,543</td>
+                  <td class="text-right">$118,254</td>
+                  <td class="text-right">Robust Conversion</td>
+                </tr>
+                <tr>
+                  <td>Capital Expenditures (CapEx)</td>
+                  <td class="text-right">$(10,708)</td>
+                  <td class="text-right">$(10,959)</td>
+                  <td class="text-right">$(9,447)</td>
+                  <td class="text-right">Asset-Light (2.4% Sales)</td>
+                </tr>
+                <tr class="tr-highlight">
+                  <td><strong>Free Cash Flow (FCF)</strong></td>
+                  <td class="text-right font-bold">$111,443</td>
+                  <td class="text-right font-bold">$99,584</td>
+                  <td class="text-right font-bold">$108,807</td>
+                  <td class="text-right font-bold">&gt;92% CFO Conversion</td>
+                </tr>
+                <tr>
+                  <td><strong>Total Debt (Term Debt + CP)</strong></td>
+                  <td class="text-right">$120,069</td>
+                  <td class="text-right">$111,088</td>
+                  <td class="text-right font-bold">$106,644</td>
+                  <td class="text-right">-11.2% Deleveraging</td>
+                </tr>
+                <tr>
+                  <td>Cash & Marketable Securities</td>
+                  <td class="text-right">$169,109</td>
+                  <td class="text-right">$162,099</td>
+                  <td class="text-right font-bold">$159,155</td>
+                  <td class="text-right">Net Cash: <strong>+$52.5B</strong></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div style="font-size: 11px; color: var(--text-dim); margin-top: 8px;">
+            *Note: FY2024 Net Income reflects a one-off ECJ Ireland state-aid tax charge of $10.2B in Q4 FY24. Normalized FY24 Net Income was $103.9B.
+          </div>
+        </div>
+
+        <!-- Section 3: Ratio Deep Dive -->
+        <div class="section-card">
+          <div class="section-header-row">
+            <div>
+              <div class="section-title">Key Profitability, Liquidity & Solvency Ratios</div>
+              <div class="section-subtitle">Financial Anatomy & DuPont Analysis Interpretation</div>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 18px;">
+            <div style="background: rgba(255,255,255,0.03); padding: 14px; border-radius: 8px; border: 1px solid var(--border-subtle);">
+              <div style="font-size: 11px; color: var(--text-dim); text-transform: uppercase;">Return on Equity (ROE)</div>
+              <div style="font-size: 24px; font-weight: 800; color: #34d399; margin: 4px 0;">164.6%</div>
+              <div style="font-size: 11px; color: var(--text-muted);">Artificially boosted by $650B+ buybacks depleting book equity.</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 14px; border-radius: 8px; border: 1px solid var(--border-subtle);">
+              <div style="font-size: 11px; color: var(--text-dim); text-transform: uppercase;">Return on Inv. Cap. (ROIC)</div>
+              <div style="font-size: 24px; font-weight: 800; color: var(--accent-cyan); margin: 4px 0;">58.7%</div>
+              <div style="font-size: 11px; color: var(--text-muted);">True measure of elite pricing power & wide moat.</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 14px; border-radius: 8px; border: 1px solid var(--border-subtle);">
+              <div style="font-size: 11px; color: var(--text-dim); text-transform: uppercase;">Current Ratio</div>
+              <div style="font-size: 24px; font-weight: 800; color: #fbbf24; margin: 4px 0;">0.87x</div>
+              <div style="font-size: 11px; color: var(--text-muted);">Negative working capital cycle; backed by $94B non-current securities.</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 14px; border-radius: 8px; border: 1px solid var(--border-subtle);">
+              <div style="font-size: 11px; color: var(--text-dim); text-transform: uppercase;">Debt-to-Equity (D/E)</div>
+              <div style="font-size: 24px; font-weight: 800; color: #f87171; margin: 4px 0;">1.87x</div>
+              <div style="font-size: 11px; color: var(--text-muted);">Strategic capital structure; Interest coverage is 31.3x.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 4: 5-Year DCF Model Projections -->
+        <div class="section-card">
+          <div class="section-header-row">
+            <div>
+              <div class="section-title">5-Year Discounted Cash Flow (DCF) Model Projections</div>
+              <div class="section-subtitle">Forecast Horizon: FY2025E – FY2029E | Normalized Tax Rate: 16.0%</div>
+            </div>
+            <div style="font-size: 12px; color: var(--accent-cyan); font-weight: 600;">$ Millions</div>
+          </div>
+
+          <!-- FCFF Visual Chart -->
+          <div id="fcffChartContainer" style="margin-bottom: 20px;"></div>
+
+          <!-- Projections Table -->
+          <div class="table-responsive">
+            <table class="financial-table">
+              <thead>
+                <tr>
+                  <th>Financial Projection Line Item</th>
+                  <th class="text-right">FY2025E</th>
+                  <th class="text-right">FY2026E</th>
+                  <th class="text-right">FY2027E</th>
+                  <th class="text-right">FY2028E</th>
+                  <th class="text-right">FY2029E</th>
+                </tr>
+              </thead>
+              <tbody id="dcfProjectionBody">
+                <!-- Dynamically populated by app.js -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Valuation Bridge -->
+          <div style="background: rgba(0, 242, 254, 0.04); border: 1px solid rgba(0, 242, 254, 0.15); border-radius: var(--radius-md); padding: 16px; margin-top: 20px;">
+            <div style="font-size: 13px; font-weight: 700; color: var(--accent-cyan); margin-bottom: 10px;">ENTERPRISE VALUE TO EQUITY VALUE BRIDGE ($ Millions)</div>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; font-size: 13px;">
+              <div>
+                <div style="color: var(--text-dim); font-size: 11px;">PV of 5-Yr FCFF:</div>
+                <div id="bridgePvFcff" style="font-weight: 700;">$493,894M</div>
+              </div>
+              <div>
+                <div style="color: var(--text-dim); font-size: 11px;">PV of Terminal Value (Exit):</div>
+                <div id="bridgePvTvExit" style="font-weight: 700;">$2,534,449M</div>
+              </div>
+              <div>
+                <div style="color: var(--text-dim); font-size: 11px;">Enterprise Value (Exit):</div>
+                <div id="bridgeEvExit" style="font-weight: 700;">$3,028,343M</div>
+              </div>
+              <div>
+                <div style="color: var(--text-dim); font-size: 11px;">Net Cash (Cash - Debt):</div>
+                <div id="bridgeNetCash" style="font-weight: 700; color: #34d399;">+$52,511M</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 5: Sensitivity Heatmap Matrices -->
+        <div class="section-card">
+          <div class="section-header-row">
+            <div>
+              <div class="section-title">Valuation Sensitivity Matrices</div>
+              <div class="section-subtitle">Multi-variable stress tests vs. current market price of $230.00</div>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div>
+              <div style="font-size: 13px; font-weight: 700; color: var(--accent-cyan); margin-bottom: 8px;">Matrix A: WACC vs. Perpetual Terminal Growth (g)</div>
+              <div id="sensitivityGrowthContainer"></div>
+            </div>
+            <div>
+              <div style="font-size: 13px; font-weight: 700; color: var(--accent-cyan); margin-bottom: 8px;">Matrix B: WACC vs. Terminal Exit EV/EBITDA</div>
+              <div id="sensitivityMultipleContainer"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 6: Peer Relative Valuation Matrix -->
+        <div class="section-card">
+          <div class="section-header-row">
+            <div>
+              <div class="section-title">Peer Relative Valuation Matrix</div>
+              <div class="section-subtitle">Comparative multiples against Mega-Cap Technology peers</div>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="financial-table">
+              <thead>
+                <tr>
+                  <th>Company (Ticker)</th>
+                  <th class="text-right">Trailing P/E</th>
+                  <th class="text-right">Forward P/E</th>
+                  <th class="text-right">EV/EBITDA</th>
+                  <th class="text-right">Price/Sales</th>
+                  <th class="text-right">3-Yr Rev CAGR</th>
+                  <th class="text-right">Operating Margin</th>
+                </tr>
+              </thead>
+              <tbody id="peerTableBody">
+                <!-- Dynamically populated by app.js -->
+              </tbody>
+            </table>
+          </div>
+          <div style="font-size: 12px; color: var(--text-muted); margin-top: 12px; line-height: 1.5;">
+            <strong>Relative Valuation Takeaway:</strong> Apple commands a substantial multiple premium on EV/EBITDA (<strong>25.4x</strong> vs. peer median of <strong>16.7x</strong>) and Forward P/E (<strong>29.8x</strong> vs. Alphabet 20.8x, Meta 22.4x). This reflects the market's treatment of Apple as an indispensable digital consumer utility, but leaves the stock with a demanding PEG ratio (>3.0x) compared to faster-growing cloud peers.
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <script src="js/financial_engine.js"></script>
+  <script src="js/chart_engine.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

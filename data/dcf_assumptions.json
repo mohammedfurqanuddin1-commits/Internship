@@ -1,0 +1,58 @@
+{
+  "scenarios": {
+    "base": {
+      "name": "Base Case (Consensus / Normalized)",
+      "risk_free_rate": 0.0425,
+      "beta": 1.05,
+      "equity_risk_premium": 0.0475,
+      "cost_of_debt_pre_tax": 0.0425,
+      "normalized_tax_rate": 0.160,
+      "wacc": 0.0825,
+      "terminal_growth_rate": 0.030,
+      "terminal_exit_multiple": 21.0,
+      "growth_rates": [0.060, 0.065, 0.055, 0.050, 0.045],
+      "ebit_margins": [0.318, 0.320, 0.322, 0.325, 0.325],
+      "da_rates": [0.028, 0.027, 0.027, 0.026, 0.026],
+      "capex_rates": [0.025, 0.025, 0.024, 0.024, 0.023],
+      "nwc_pct_change": 0.050,
+      "target_price": 215.00,
+      "description": "Solid Edge AI adoption on iPhone 16/17, Services maintaining 12-14% growth, steady capital return program."
+    },
+    "bull": {
+      "name": "Bull Case (AI Supercycle & Accelerated Services)",
+      "risk_free_rate": 0.0375,
+      "beta": 1.00,
+      "equity_risk_premium": 0.0450,
+      "cost_of_debt_pre_tax": 0.0400,
+      "normalized_tax_rate": 0.155,
+      "wacc": 0.0775,
+      "terminal_growth_rate": 0.035,
+      "terminal_exit_multiple": 24.0,
+      "growth_rates": [0.085, 0.090, 0.075, 0.065, 0.055],
+      "ebit_margins": [0.325, 0.332, 0.338, 0.342, 0.345],
+      "da_rates": [0.028, 0.027, 0.027, 0.026, 0.026],
+      "capex_rates": [0.024, 0.024, 0.023, 0.023, 0.022],
+      "nwc_pct_change": 0.040,
+      "target_price": 255.00,
+      "description": "Apple Intelligence drives massive iPhone upgrade supercycle; Services monetization doubles ARPU; China sales rebound."
+    },
+    "bear": {
+      "name": "Bear Case (Regulatory Clampdown & Stagnant Hardware)",
+      "risk_free_rate": 0.0475,
+      "beta": 1.15,
+      "equity_risk_premium": 0.0525,
+      "cost_of_debt_pre_tax": 0.0475,
+      "normalized_tax_rate": 0.180,
+      "wacc": 0.0950,
+      "terminal_growth_rate": 0.025,
+      "terminal_exit_multiple": 17.5,
+      "growth_rates": [0.030, 0.035, 0.025, 0.020, 0.020],
+      "ebit_margins": [0.305, 0.300, 0.295, 0.292, 0.290],
+      "da_rates": [0.028, 0.027, 0.027, 0.026, 0.026],
+      "capex_rates": [0.027, 0.027, 0.026, 0.026, 0.025],
+      "nwc_pct_change": 0.060,
+      "target_price": 170.00,
+      "description": "DOJ antitrust forces Google search TAC removal; EU DMA erodes App Store take rate; AI adoption fails to trigger upgrades."
+    }
+  }
+}
